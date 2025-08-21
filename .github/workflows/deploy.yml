@@ -51,14 +51,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuxt-build-
 
-      - name: Clean npm cache
-        run: npm cache clean --force
-
-      - name: Clean cache and install dependencies
+      - name: Clean dependencies and cache
         run: |
           rm -rf node_modules package-lock.json
-          npm install --no-optional
-          npm run postinstall
+          npm cache clean --force
+          rm -rf ~/.npm
+
+      - name: Install dependencies
+        run: |
+          npm install --no-optional --force --legacy-peer-deps
+          
+      - name: Remove problematic packages
+        run: |
+          npm uninstall oxc-parser || true
+          
+      - name: Install alternative parser
+        run: |
+          npm install @babel/parser --save-dev || true
+          
+      - name: Prepare Nuxt
+        run: |
+          npm run postinstall || npm run build:prepare || npx nuxt prepare
 
       - name: Build and generate static files
         run: |

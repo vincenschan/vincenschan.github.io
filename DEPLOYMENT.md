@@ -76,11 +76,21 @@ jobs:
       - name: Clean npm cache
         run: npm cache clean --force
 
-      - name: Clean cache and install dependencies
+      - name: Install dependencies
         run: |
-          rm -rf node_modules package-lock.json
-          npm install --no-optional
-          npm run postinstall
+          npm install --no-optional --force --legacy-peer-deps
+          
+      - name: Remove problematic packages
+        run: |
+          npm uninstall oxc-parser || true
+          
+      - name: Install alternative parser
+        run: |
+          npm install @babel/parser --save-dev || true
+
+      - name: Prepare Nuxt
+        run: |
+          npm run postinstall || npm run build:prepare || npx nuxt prepare
 
       - name: Build and generate static files
         run: npm run generate
@@ -218,17 +228,32 @@ https://用户名.github.io/仓库名/
 
 #### 5. 原生绑定错误
 
-**错误信息**：`Cannot find native binding. npm has a bug related to optional dependencies`
+**错误信息**：
+```
+Cannot find native binding. npm has a bug related to optional dependencies
+Cannot find module './parser.linux-x64-gnu.node'
+Cannot find module '@oxc-parser/binding-linux-x64-gnu'
+```
 
 **解决方案**：
-1. 工作流已配置自动清理缓存和重新安装依赖
-2. 使用 `--no-optional` 标志跳过可选依赖
-3. 如果本地遇到此问题，运行：
-   ```bash
-   rm -rf node_modules package-lock.json
-   npm cache clean --force
-   npm install --no-optional
-   ```
+
+工作流已自动配置多重解决策略：
+1. 清理所有缓存和依赖（包括 ~/.npm）
+2. 使用 `--no-optional --force --legacy-peer-deps` 安装
+3. 移除有问题的 oxc-parser 包
+4. 安装替代解析器 @babel/parser
+5. 多重 Nuxt 准备命令备选（postinstall/build:prepare/nuxt prepare）
+
+如果本地遇到此问题，运行：
+```bash
+rm -rf node_modules package-lock.json
+npm cache clean --force
+rm -rf ~/.npm
+npm install --no-optional --force --legacy-peer-deps
+npm uninstall oxc-parser || true
+npm install @babel/parser --save-dev || true
+npm run postinstall || npx nuxt prepare
+```
 
 ### 调试技巧
 
