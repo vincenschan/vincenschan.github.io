@@ -29,14 +29,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:
           # 自动检测静态站点生成器并配置
           static_site_generator: nuxt
+          # 自动启用Pages功能
+          enablement: true
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -44,13 +46,19 @@ jobs:
           path: |
             .output
             .nuxt
-            node_modules
-          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('package-lock.json') }}
+            ~/.npm
+          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('package.json') }}
           restore-keys: |
             ${{ runner.os }}-nuxt-build-
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Clean cache and install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --no-optional
+          npm run postinstall
 
       - name: Build and generate static files
         run: |

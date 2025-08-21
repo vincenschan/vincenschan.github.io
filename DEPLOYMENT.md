@@ -51,13 +51,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-          cache: 'npm'
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org/'
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
         with:
+          # 自动检测静态站点生成器并配置
           static_site_generator: nuxt
+          # 自动启用Pages功能
+          enablement: true
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -65,13 +68,19 @@ jobs:
           path: |
             .output
             .nuxt
-            node_modules
-          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('package-lock.json') }}
+            ~/.npm
+          key: ${{ runner.os }}-nuxt-build-${{ hashFiles('package.json') }}
           restore-keys: |
             ${{ runner.os }}-nuxt-build-
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clean npm cache
+        run: npm cache clean --force
+
+      - name: Clean cache and install dependencies
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --no-optional
+          npm run postinstall
 
       - name: Build and generate static files
         run: npm run generate
@@ -182,7 +191,16 @@ https://用户名.github.io/仓库名/
 1. 确保在仓库 Settings → Pages 中选择了 "GitHub Actions"
 2. 检查仓库的 Actions 权限设置
 
-#### 2. 资源加载失败
+#### 2. Pages 未启用错误
+
+**错误信息**：`Get Pages site failed. Please verify that the repository has Pages enabled`
+
+**解决方案**：
+1. 工作流已配置 `enablement: true` 参数自动启用 Pages
+2. 如果仍然失败，手动在仓库 Settings → Pages 中启用功能
+3. 确保仓库是公开的，或者有 GitHub Pro/Team 订阅
+
+#### 3. 资源加载失败
 
 **问题**：网站部署成功但样式或图片无法加载
 
@@ -190,13 +208,27 @@ https://用户名.github.io/仓库名/
 1. 检查 `nuxt.config.ts` 中的 `baseURL` 配置
 2. 确保所有资源路径都是相对路径
 
-#### 3. 构建失败：依赖问题
+#### 4. 构建失败：依赖问题
 
 **错误信息**：`npm ERR! peer dep missing`
 
 **解决方案**：
 1. 更新 `package.json` 中的依赖版本
 2. 删除 `package-lock.json` 并重新安装依赖
+
+#### 5. 原生绑定错误
+
+**错误信息**：`Cannot find native binding. npm has a bug related to optional dependencies`
+
+**解决方案**：
+1. 工作流已配置自动清理缓存和重新安装依赖
+2. 使用 `--no-optional` 标志跳过可选依赖
+3. 如果本地遇到此问题，运行：
+   ```bash
+   rm -rf node_modules package-lock.json
+   npm cache clean --force
+   npm install --no-optional
+   ```
 
 ### 调试技巧
 
