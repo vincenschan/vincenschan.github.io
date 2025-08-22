@@ -210,7 +210,38 @@ https://用户名.github.io/仓库名/
 2. 如果仍然失败，手动在仓库 Settings → Pages 中启用功能
 3. 确保仓库是公开的，或者有 GitHub Pro/Team 订阅
 
-#### 3. 资源加载失败
+#### 3. Jekyll 构建冲突
+
+**问题描述：**
+GitHub Pages 尝试使用 Jekyll 构建 Nuxt.js 项目，导致构建失败：
+```
+Error: No such file or directory @ rb_check_realpath_internal - /github/workspace/dist
+```
+
+**解决方案：**
+
+1. **移除 Jekyll 自动检测**
+   ```yaml
+   # .github/workflows/deploy.yml
+   - name: Setup Pages
+     uses: actions/configure-pages@v4
+     # 移除 static_site_generator 配置
+   ```
+
+2. **添加 .nojekyll 文件**
+   - 在项目根目录创建空的 `.nojekyll` 文件
+   - 工作流会自动复制到输出目录
+   - 告诉 GitHub Pages 不要使用 Jekyll 处理静态文件
+
+3. **确保文件复制**
+   ```yaml
+   - name: Copy CNAME and .nojekyll files
+     run: |
+       cp CNAME .output/public/CNAME
+       cp .nojekyll .output/public/.nojekyll
+   ```
+
+#### 4. 资源加载失败
 
 **问题**：网站部署成功但样式或图片无法加载
 
@@ -218,7 +249,7 @@ https://用户名.github.io/仓库名/
 1. 检查 `nuxt.config.ts` 中的 `baseURL` 配置
 2. 确保所有资源路径都是相对路径
 
-#### 4. 构建失败：依赖问题
+#### 5. 构建失败：依赖问题
 
 **错误信息**：`npm ERR! peer dep missing`
 
@@ -226,7 +257,7 @@ https://用户名.github.io/仓库名/
 1. 更新 `package.json` 中的依赖版本
 2. 删除 `package-lock.json` 并重新安装依赖
 
-#### 5. 自定义域名样式丢失
+#### 6. 自定义域名样式丢失
 
 **问题描述：**
 使用自定义域名（如 xhex.space）部署后，网站样式和资源无法正确加载。
@@ -261,7 +292,7 @@ https://用户名.github.io/仓库名/
    })
    ```
 
-#### 6. 原生绑定错误
+#### 7. 原生绑定错误
 
 **错误信息：**
 ```

@@ -34,11 +34,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          # 自动检测静态站点生成器并配置
-          static_site_generator: nuxt
-          # 自动启用Pages功能
-          enablement: true
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -80,8 +75,10 @@ jobs:
         env:
           NODE_ENV: production
           
-      - name: Copy CNAME file
-        run: cp CNAME .output/public/CNAME
+      - name: Copy CNAME and .nojekyll files
+        run: |
+          cp CNAME .output/public/CNAME
+          cp .nojekyll .output/public/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
