@@ -1,20 +1,25 @@
 name: Deploy to GitHub Pages
 
 on:
+  # 当推送到main分支时触发
   push:
     branches: [ main ]
+  # 允许手动触发
   workflow_dispatch:
 
+# 设置GITHUB_TOKEN的权限
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# 确保同时只有一个部署在运行
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
+  # 构建作业
   build:
     runs-on: ubuntu-latest
     steps:
@@ -29,11 +34,6 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          # 自动检测静态站点生成器并配置
-          static_site_generator: nuxt
-          # 自动启用Pages功能
-          enablement: true
 
       - name: Restore cache
         uses: actions/cache@v4
@@ -46,12 +46,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuxt-build-
 
-      - name: Clean npm cache
-        run: npm cache clean --force
+      - name: Clean dependencies and cache
+        run: |
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          rm -rf ~/.npm
 
       - name: Install dependencies
         run: |
-          npm install --no-optional --force --legacy-peer-deps
+          rm -rf node_modules package-lock.json
+          npm install --force
           
       - name: Remove problematic packages
         run: |
@@ -60,21 +64,28 @@ jobs:
       - name: Install alternative parser
         run: |
           npm install @babel/parser --save-dev || true
-
+          
       - name: Prepare Nuxt
         run: |
           npm run postinstall || npm run build:prepare || npx nuxt prepare
 
       - name: Build and generate static files
-        run: npm run generate
+        run: |
+          npm run generate
         env:
           NODE_ENV: production
+          
+      - name: Copy CNAME and .nojekyll files
+        run: |
+          cp CNAME .output/public/CNAME
+          cp .nojekyll .output/public/.nojekyll
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./.output/public
 
+  # 部署作业
   deploy:
     environment:
       name: github-pages
