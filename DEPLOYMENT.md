@@ -226,16 +226,51 @@ https://用户名.github.io/仓库名/
 1. 更新 `package.json` 中的依赖版本
 2. 删除 `package-lock.json` 并重新安装依赖
 
-#### 5. 原生绑定错误
+#### 5. 自定义域名样式丢失
 
-**错误信息**：
+**问题描述：**
+使用自定义域名（如 xhex.space）部署后，网站样式和资源无法正确加载。
+
+**解决方案：**
+
+1. **配置 Nuxt.js 支持自定义域名**
+   ```typescript
+   // nuxt.config.ts
+   export default defineNuxtConfig({
+     app: {
+       baseURL: '/',
+       buildAssetsDir: '/_nuxt/',
+       cdnURL: process.env.NODE_ENV === 'production' ? 'https://xhex.space' : ''
+     }
+   })
+   ```
+
+2. **确保 CNAME 文件正确配置**
+   - 在项目根目录创建 `CNAME` 文件
+   - 文件内容为域名：`xhex.space`
+   - 工作流会自动复制到输出目录
+
+3. **启用 SSR 进行静态生成**
+   ```typescript
+   // nuxt.config.ts
+   export default defineNuxtConfig({
+     ssr: true,
+     nitro: {
+       preset: 'static'
+     }
+   })
+   ```
+
+#### 6. 原生绑定错误
+
+**错误信息：**
 ```
 Cannot find native binding. npm has a bug related to optional dependencies
 Cannot find module './parser.linux-x64-gnu.node'
 Cannot find module '@oxc-parser/binding-linux-x64-gnu'
 ```
 
-**解决方案**：
+**解决方案：**
 
 工作流已自动配置多重解决策略：
 1. 清理所有缓存和依赖（包括 ~/.npm）
@@ -244,7 +279,7 @@ Cannot find module '@oxc-parser/binding-linux-x64-gnu'
 4. 安装替代解析器 @babel/parser
 5. 多重 Nuxt 准备命令备选（postinstall/build:prepare/nuxt prepare）
 
-如果本地遇到此问题，运行：
+**本地解决方案：**
 ```bash
 rm -rf node_modules package-lock.json
 npm cache clean --force

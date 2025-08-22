@@ -79,6 +79,9 @@ jobs:
           npm run generate
         env:
           NODE_ENV: production
+          
+      - name: Copy CNAME file
+        run: cp CNAME .output/public/CNAME
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

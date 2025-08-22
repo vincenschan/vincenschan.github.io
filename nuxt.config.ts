@@ -2,8 +2,8 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
   
-  // 确保生成静态文件
-  ssr: false,
+  // 静态站点生成配置
+  ssr: true,
   
   modules: [
     '@nuxtjs/tailwindcss',
@@ -23,9 +23,10 @@ export default defineNuxtConfig({
   
   // 应用配置
   app: {
-    // GitHub Pages部署配置
-    baseURL: process.env.NODE_ENV === 'production' ? '/' : '/',
-    buildAssetsDir: '/assets/',
+    // GitHub Pages部署配置 - 自定义域名
+    baseURL: '/',
+    buildAssetsDir: '/_nuxt/',
+    cdnURL: process.env.NODE_ENV === 'production' ? 'https://xhex.space' : '',
     head: {
       title: '六边形智能科技 - 引领未来科技创新',
       meta: [
@@ -42,9 +43,12 @@ export default defineNuxtConfig({
 
   // Nitro配置用于静态生成
   nitro: {
-    preset: 'static',
-    prerender: {
-      routes: ['/sitemap.xml']
-    }
+    preset: 'static'
+  },
+
+  // 实验性功能配置
+  experimental: {
+    // 确保静态生成时正确处理资源
+    payloadExtraction: false
   }
 })
