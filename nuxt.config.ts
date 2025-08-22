@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   // 应用配置
   app: {
     // GitHub Pages部署配置
-    baseURL: process.env.NODE_ENV === 'production' ? '/xhex-website/' : '/',
+    baseURL: process.env.NODE_ENV === 'production' ? '/' : '/',
     buildAssetsDir: '/assets/',
     head: {
       title: '六边形智能科技 - 引领未来科技创新',
